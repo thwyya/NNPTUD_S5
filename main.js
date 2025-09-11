@@ -9,19 +9,13 @@ async function LoadData() {
         body.innerHTML += convertDataToHTML(post);
     }
 }
-function LoadDataA() {
-    fetch('http://localhost:3000/posts').then(
-        function (data) {
-            return data.json()
-        }
-    ).then(
-        function (posts) {
-            for (const post of posts) {
-                let body = document.getElementById("body");
-                body.innerHTML += convertDataToHTML(post);
-            }
-        }
-    )
+async function LoadDataA() {
+    let data = await fetch('http://localhost:3000/posts');
+    let posts = await data.json();
+    for (const post of posts) {
+        let body = document.getElementById("body");
+        body.innerHTML += convertDataToHTML(post);
+    }
 }
 
 function convertDataToHTML(post) {
@@ -37,65 +31,56 @@ function convertDataToHTML(post) {
 
 
 //POST: domain:port//posts + body
-function SaveData(){
+async function SaveData(){
     let id = document.getElementById("id").value;
     let title = document.getElementById("title").value;
     let view = document.getElementById("view").value;
-    fetch("http://localhost:3000/posts/"+id).then(
-        function(data){
-            if(data.ok){
-                let dataObj = {
-                    title:title,
-                    views:view
-                }
-                fetch('http://localhost:3000/posts/'+id,
-                {
-                    method:'PUT',
-                    body:JSON.stringify(dataObj),
-                    headers:{
-                        "Content-Type":"application/json"
-                    }
 
-                }).then(
-                    function(data){
-                        console.log(data);
-                    }
-                )
-            }else{
-                let dataObj = {
-                    id:id,
-                    title:title,
-                    views:view
-                }
-                fetch('http://localhost:3000/posts',
-                {
-                    method:'POST',
-                    body:JSON.stringify(dataObj),
-                    headers:{
-                        "Content-Type":"application/json"
-                    }
+    let check = await fetch("http://localhost:3000/posts/" + id);
 
-                }).then(
-                    function(data){
-                        console.log(data);
-                    }
-                )
+    if (check.ok) {
+        // PUT
+        let dataObj = {
+            title: title,
+            views: view
+        };
+
+        let response = await fetch("http://localhost:3000/posts/" + id, {
+            method: "PUT",
+            body: JSON.stringify(dataObj),
+            headers: {
+                "Content-Type": "application/json"
             }
-        }
-    )
+        });
 
+        console.log("PUT status:", response.status);
+    } else {
+        //POST
+        let dataObj = {
+            id: id,
+            title: title,
+            views: view
+        };
 
-    
+        let response = await fetch("http://localhost:3000/posts", {
+            method: "POST",
+            body: JSON.stringify(dataObj),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+
+        console.log("POST status:", response.status);
+    }    
 }
 //PUT: domain:port//posts/id + body
 
 //DELETE: domain:port//posts/id
-function Delete(id){
-    fetch('http://localhost:3000/posts/'+id,{
-        method:'Delete'
-    }).then(
-        function(){
-            console.log("Delete thanh cong");
-        }
-    )
+async function Delete(id){
+    let response = await fetch('http://localhost:3000/posts/' + id, {
+        method: 'DELETE'
+    });
+    if (response.ok) {
+        console.log("Delete thành công:", id);
+    }
 }
