@@ -1,3 +1,4 @@
 # NNPTUD_S5
 Ngô Thị Thúy Nga
 MSSV: 2280602046
+git add .
