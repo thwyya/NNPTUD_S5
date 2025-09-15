@@ -4,17 +4,12 @@ LoadData();
 async function LoadData() {
     let data = await fetch('http://localhost:3000/posts');
     let posts = await data.json();
+    let body = document.getElementById("body");
+    body.innerHTML = "";
     for (const post of posts) {
-        let body = document.getElementById("body");
-        body.innerHTML += convertDataToHTML(post);
-    }
-}
-async function LoadDataA() {
-    let data = await fetch('http://localhost:3000/posts');
-    let posts = await data.json();
-    for (const post of posts) {
-        let body = document.getElementById("body");
-        body.innerHTML += convertDataToHTML(post);
+        if (!post.isDelete) { 
+            body.innerHTML += convertDataToHTML(post);
+        }
     }
 }
 
@@ -28,59 +23,85 @@ function convertDataToHTML(post) {
     return result;
 }
 
+async function getMaxID(){
+    let res = await fetch('http://localhost:3000/posts');
+    let posts = await res.json();
+    if (posts.length === 0) return 0;
+    let ids = posts.map(e => Number(e.id));
+    return Math.max(...ids);
+}
+
 
 
 //POST: domain:port//posts + body
 async function SaveData(){
-    let id = document.getElementById("id").value;
-    let title = document.getElementById("title").value;
-    let view = document.getElementById("view").value;
+    let id = document.getElementById("id").value.trim();
+    let title = document.getElementById("title").value.trim();
+    let view = parseInt(document.getElementById("view").value.trim(), 10) || 0;
 
-    let check = await fetch("http://localhost:3000/posts/" + id);
+    if (id) {
+        // PUT (cập nhật)
+        let resGet = await fetch("http://localhost:3000/posts/" + id);
+        if (resGet.ok) {
+            let oldData = await resGet.json();
+            let dataObj = {
+                id: id,
+                title: title,
+                views: view,
+                isDelete: oldData.isDelete || false
+            };
 
-    if (check.ok) {
-        // PUT
-        let dataObj = {
-            title: title,
-            views: view
-        };
-
-        let response = await fetch("http://localhost:3000/posts/" + id, {
-            method: "PUT",
-            body: JSON.stringify(dataObj),
-            headers: {
-                "Content-Type": "application/json"
-            }
-        });
-
-        console.log("PUT status:", response.status);
+            let res = await fetch("http://localhost:3000/posts/" + id, {
+                method: "PUT",
+                body: JSON.stringify(dataObj),
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+            console.log("PUT status:", res.status);
+        }
     } else {
-        //POST
+        // POST (thêm mới, id tự tăng)
+        let newId = await getMaxID() + 1;
         let dataObj = {
-            id: id,
+            id: newId.toString(),
             title: title,
-            views: view
+            views: view,
+            isDelete: false
         };
 
-        let response = await fetch("http://localhost:3000/posts", {
+        let res = await fetch("http://localhost:3000/posts", {
             method: "POST",
             body: JSON.stringify(dataObj),
             headers: {
                 "Content-Type": "application/json"
             }
         });
+        console.log("POST status:", res.status);
+    }
 
-        console.log("POST status:", response.status);
-    }    
+    LoadData();
+    document.getElementById("id").value = "";
+    document.getElementById("title").value = "";
+    document.getElementById("view").value = "";
 }
 //PUT: domain:port//posts/id + body
 
 //DELETE: domain:port//posts/id
 async function Delete(id){
-    let response = await fetch('http://localhost:3000/posts/' + id, {
-        method: 'DELETE'
-    });
-    if (response.ok) {
-        console.log("Delete thành công:", id);
+    let res = await fetch('http://localhost:3000/posts/' + id);
+    if (res.ok) {
+        let obj = await res.json();
+        obj.isDelete = true;
+
+        let result = await fetch('http://localhost:3000/posts/' + id, {
+            method: 'PUT',
+            body: JSON.stringify(obj),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+        console.log("Soft delete status:", result.status);
+        LoadData();
     }
 }
