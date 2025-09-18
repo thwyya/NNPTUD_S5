@@ -12,14 +12,16 @@
   <ul id="suggestions"></ul>
 
   <div class="range-container">
-    <label>Min Views: <span id="minValue">0</span></label>
-    <input type="range" id="minSlider" min="0" max="1000" value="0">
-
-    <label>Max Views: <span id="maxValue">1000</span></label>
-    <input type="range" id="maxSlider" min="0" max="1000" value="1000">
-
-    <button id="filterBtn">Filter</button>
+    <div class="slider-track"></div>
+    <input type="range" id="minSlider">
+    <input type="range" id="maxSlider">
+    <div class="values">
+      <span id="minValue">0</span>
+      <span id="maxValue">0</span>
+    </div>
   </div>
+
+  <button id="filterBtn">Filter</button>
 
   <h2>Results:</h2>
   <ul id="results"></ul>
@@ -34,22 +36,70 @@
     const maxValue = document.getElementById('maxValue');
     const filterBtn = document.getElementById('filterBtn');
 
-    async function fetchPosts(query="") {
+    async function fetchPosts(query = "") {
       let url = 'http://localhost:3000/posts';
-      if(query) url += query;
+      if (query) url += query;
       let res = await fetch(url);
       return res.json();
     }
 
-    function renderResults(posts){
+    function renderResults(posts) {
       results.innerHTML = posts.length > 0
         ? posts.map(p => `<li>${p.title} (${p.views} views)</li>`).join('')
         : "<li>Không tìm thấy kết quả</li>";
     }
 
+    async function initSliders() {
+      let posts = await fetchPosts();
+      if (posts.length === 0) return;
+
+      let views = posts.map(p => p.views);
+      let min = Math.min(...views);
+      let max = Math.max(...views);
+
+      minSlider.min = min;
+      minSlider.max = max;
+      minSlider.value = min;
+
+      maxSlider.min = min;
+      maxSlider.max = max;
+      maxSlider.value = max;
+
+      minValue.textContent = min;
+      maxValue.textContent = max;
+
+      renderResults(posts);
+    }
+
+    function updateValues() {
+      let min = parseInt(minSlider.value);
+      let max = parseInt(maxSlider.value);
+      if (min > max - 1) {
+        minSlider.value = max - 1;
+        min = max - 1;
+      }
+      if (max < min + 1) {
+        maxSlider.value = min + 1;
+        max = min + 1;
+      }
+      minValue.textContent = min;
+      maxValue.textContent = max;
+    }
+
+    minSlider.addEventListener('input', updateValues);
+    maxSlider.addEventListener('input', updateValues);
+
+    filterBtn.addEventListener('click', async () => {
+      let min = minSlider.value;
+      let max = maxSlider.value;
+      let posts = await fetchPosts(`?views_gte=${min}&views_lte=${max}`);
+      renderResults(posts);
+    });
+
+    // search logic
     searchBox.addEventListener('input', async () => {
       let keyword = searchBox.value.trim();
-      if(keyword.length === 0){
+      if (keyword.length === 0) {
         suggestions.innerHTML = "";
         return;
       }
@@ -58,7 +108,7 @@
     });
 
     suggestions.addEventListener('click', async (e) => {
-      if(e.target.tagName === 'LI'){
+      if (e.target.tagName === 'LI') {
         let title = e.target.getAttribute('data-title');
         searchBox.value = title;
         suggestions.innerHTML = "";
@@ -68,7 +118,7 @@
     });
 
     searchBox.addEventListener('keydown', async (e) => {
-      if(e.key === "Enter"){
+      if (e.key === "Enter") {
         let keyword = searchBox.value.trim();
         let posts = await fetchPosts(`?title_like=${encodeURIComponent(keyword)}`);
         suggestions.innerHTML = "";
@@ -76,21 +126,7 @@
       }
     });
 
-    minSlider.addEventListener('input', () => {
-      minValue.textContent = minSlider.value;
-    });
-    maxSlider.addEventListener('input', () => {
-      maxValue.textContent = maxSlider.value;
-    });
-
-    filterBtn.addEventListener('click', async () => {
-      let min = minSlider.value;
-      let max = maxSlider.value;
-      let posts = await fetchPosts(`?views_gte=${min}&views_lte=${max}`);
-      renderResults(posts);
-    });
-
-    fetchPosts().then(posts => renderResults(posts));
+    initSliders();
   </script>
 </body>
 </html>
