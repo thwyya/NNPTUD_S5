@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Post Search</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Search Posts</h1>
+
+  <input type="text" id="searchBox" placeholder="Search by title...">
+  <ul id="suggestions"></ul>
+
+  <div class="range-container">
+    <label>Min Views: <span id="minValue">0</span></label>
+    <input type="range" id="minSlider" min="0" max="1000" value="0">
+
+    <label>Max Views: <span id="maxValue">1000</span></label>
+    <input type="range" id="maxSlider" min="0" max="1000" value="1000">
+
+    <button id="filterBtn">Filter</button>
+  </div>
+
+  <h2>Results:</h2>
+  <ul id="results"></ul>
+
+  <script>
+    const searchBox = document.getElementById('searchBox');
+    const suggestions = document.getElementById('suggestions');
+    const results = document.getElementById('results');
+    const minSlider = document.getElementById('minSlider');
+    const maxSlider = document.getElementById('maxSlider');
+    const minValue = document.getElementById('minValue');
+    const maxValue = document.getElementById('maxValue');
+    const filterBtn = document.getElementById('filterBtn');
+
+    async function fetchPosts(query="") {
+      let url = 'http://localhost:3000/posts';
+      if(query) url += query;
+      let res = await fetch(url);
+      return res.json();
+    }
+
+    function renderResults(posts){
+      results.innerHTML = posts.length > 0
+        ? posts.map(p => `<li>${p.title} (${p.views} views)</li>`).join('')
+        : "<li>Không tìm thấy kết quả</li>";
+    }
+
+    searchBox.addEventListener('input', async () => {
+      let keyword = searchBox.value.trim();
+      if(keyword.length === 0){
+        suggestions.innerHTML = "";
+        return;
+      }
+      let posts = await fetchPosts(`?title_like=${keyword}`);
+      suggestions.innerHTML = posts.map(p => `<li data-title="${p.title}">${p.title}</li>`).join('');
+    });
+
+    suggestions.addEventListener('click', async (e) => {
+      if(e.target.tagName === 'LI'){
+        let title = e.target.getAttribute('data-title');
+        searchBox.value = title;
+        suggestions.innerHTML = "";
+        let posts = await fetchPosts(`?title=${encodeURIComponent(title)}`);
+        renderResults(posts);
+      }
+    });
+
+    searchBox.addEventListener('keydown', async (e) => {
+      if(e.key === "Enter"){
+        let keyword = searchBox.value.trim();
+        let posts = await fetchPosts(`?title_like=${encodeURIComponent(keyword)}`);
+        suggestions.innerHTML = "";
+        renderResults(posts);
+      }
+    });
+
+    minSlider.addEventListener('input', () => {
+      minValue.textContent = minSlider.value;
+    });
+    maxSlider.addEventListener('input', () => {
+      maxValue.textContent = maxSlider.value;
+    });
+
+    filterBtn.addEventListener('click', async () => {
+      let min = minSlider.value;
+      let max = maxSlider.value;
+      let posts = await fetchPosts(`?views_gte=${min}&views_lte=${max}`);
+      renderResults(posts);
+    });
+
+    fetchPosts().then(posts => renderResults(posts));
+  </script>
+</body>
+</html>

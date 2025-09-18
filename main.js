@@ -45,13 +45,13 @@ app.get('/posts', (req, res) => {
     }
     res.send(posts)
 })
+
 app.get('/posts/:id', (req, res) => {
+    let posts = JSON.parse(fs.readFileSync('./db.json')).posts; 
     let id = req.params.id;
-    let post = posts.filter(
-        p=>p.id==id
-    )
-    if(post.length>0){
-        res.send(post[0]);
+    let post = posts.find(p => p.id == id);
+    if(post){
+        res.send(post);
     }else{
         res.status(404).send({
             success:false,

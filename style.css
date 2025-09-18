@@ -1,0 +1,27 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+}
+
+#suggestions {
+  border: 1px solid #ccc;
+  max-width: 300px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  position: absolute;
+  background: white;
+}
+
+#suggestions li {
+  padding: 5px;
+  cursor: pointer;
+}
+
+#suggestions li:hover {
+  background: #eee;
+}
+
+.range-container {
+  margin-top: 20px;
+}
