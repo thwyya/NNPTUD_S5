@@ -14,11 +14,11 @@ let schema = new mongoose.Schema({
         type:String,
         default: "good product"
     },
-    category:{
-        type:String,
+    category: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'category',
         required: true
-    }
-    ,
+    },
     isDelete:{
         type:Boolean,
         default: false

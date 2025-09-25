@@ -3,11 +3,11 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-let mongoose = require('mongoose');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-
+var categoryRouter = require('./routes/category');
+var productRouter = require('./routes/products');
 var app = express();
 
 // view engine setup
@@ -22,17 +22,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/comments',require('./routes/comments'))
-app.use('/products',require('./routes/products'))
-
-mongoose.connect('mongodb://localhost:27017/NNPTUD-S5').catch(
-  function(err){
-    console.log(err);
-  }
-)
-mongoose.connection.on('connected',function(){
-  console.log('connected');
-})
+app.use('/categories', categoryRouter);
+app.use('/products', productRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -49,5 +40,11 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
+const mongoose = require('mongoose');
+
+mongoose.connect('mongodb://127.0.0.1:27017/nnptud-s5')
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.log('MongoDB connection error:', err));
 
 module.exports = app;
