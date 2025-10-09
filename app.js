@@ -14,6 +14,8 @@ mongoose.connect('mongodb://localhost:27017/NNPTUD-S5')
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+var productRouter = require('./routes/product');
+var categoryRouter = require('./routes/category');
 
 var app = express();
 
@@ -31,6 +33,9 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/roles', require('./routes/roles'));
 app.use('/auth', require('./routes/auth'));
+
+app.use('/product', productRouter);
+app.use('/category', categoryRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
