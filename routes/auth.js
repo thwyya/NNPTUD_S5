@@ -4,6 +4,8 @@ let users = require('../schemas/users');
 let roles = require('../schemas/roles');
 let bcrypt = require('bcrypt');
 let jwt = require('jsonwebtoken')
+let { Response } = require('../utils/responseHandler')
+let {Authentication,Authorization}= require('../utils/authHandler')
 
 
 
@@ -17,10 +19,7 @@ router.post('/register', async function (req, res, next) {
     role: role
   })
   await newUser.save();
-  res.send({
-    success: true,
-    data: "dang ki thanh cong"
-  })
+  Response(res,200,true,"dang ki thanh cong");
 });
 router.post('/login', async function (req, res, next) {
   let username = req.body.username;
@@ -29,10 +28,7 @@ router.post('/login', async function (req, res, next) {
     username: username
   })
   if (user.length == 0) {
-    res.status(404).send({
-      success: true,
-      data: "user khong ton tai"
-    })
+    Response(res,404,false,"user khong ton tai");
     return;
   } else {
     let result = bcrypt.compareSync(password, user.password);
@@ -45,69 +41,28 @@ router.post('/login', async function (req, res, next) {
         httpOnly: true,
         maxAge: 60 * 1000 * 60 * 24 * 7
       })
-      res.send({
-        success: true,
-        data: token
-      })
+      Response(res,200,true,token);
     } else {
-      res.send({
-        success: true,
-        data: "user sai password"
-      })
+      Response(res, 403, false, "user sai password");
     }
   }
 });
 router.post("/logout", function (req, res, next) {
   try {
-    res.cookie("token","");
-    res.send({
-      success: true,
-      data: "Logout thanh cong"
-    })
+    res.cookie("token", "");
+    Response(res, 200, true, "logout thanh cong");
   } catch (error) {
-    res.send({
-      success: true,
-      data: error
-    })
+    Response(res, 404, false, "token sai");
   }
 })
-router.get('/me', async function (req, res, next) {
-  let token = req.headers.authorization ? req.headers.authorization : req.cookies.token;
-  if (token && token.startsWith("Bearer")) {
-    token = token.split(" ")[1];
-    if (jwt.verify(token, "NNPTUD")) {
-      if (jwt.decode(token).exp < Date.now()) {
-        res.status(403).send({
-          success: false,
-          data: "user chua dang nhap"
-        })
-      } else {
-        let userId = jwt.decode(token)._id;
-        let user = await users.findById(userId).select(
-          "username avatarURL email fullname role"
-        ).populate({
-          path: 'role',
-          select: 'name'
-        });
-        if (user) {
-          res.status(200).send({
-            success: true,
-            data: user
-          })
-        }
-      }
-    } else {
-      res.status(403).send({
-        success: false,
-        data: "user chua dang nhap"
-      })
-    }
-  } else {
-    res.status(403).send({
-      success: false,
-      data: "user chua dang nhap"
-    })
-  }
+router.get('/me',Authentication, Authorization("ADMIN","MOD","USER"),async function (req, res, next) {
+   let user = await users.findById(req.userId).select(
+    "username email fullname avatarURL"
+   ).populate({
+    path: 'role',
+    select:'name'
+  });
+   Response(res,200,true,user)
 })
 
 
