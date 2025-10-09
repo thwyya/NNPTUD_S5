@@ -24,7 +24,7 @@ router.post('/register', async function(req, res, next) {
 router.post('/login', async function(req, res, next) {
   let username = req.body.username;
   let password = req.body.password;
-  let user = await users.find({
+  let user = await users.findOne({
     username:username
   })
   if(user.length==0){
@@ -34,12 +34,12 @@ router.post('/login', async function(req, res, next) {
     })
     return;
   }else{
-    let result = bcrypt.compareSync(password,user[0].password);
+    let result = bcrypt.compareSync(password,user.password);
     if(result){
     res.send({
       success:true,
       data:jwt.sign({
-        _id:user[0]._id,
+        _id:user._id,
         exp:Date.now()+15*60*1000
       },"NNPTUD")
     })
@@ -52,10 +52,40 @@ router.post('/login', async function(req, res, next) {
   }
 });
 
-router.get('/me',function(req, res, next){
+router.get('/me',async function(req, res, next){
   let token = req.headers.authorization;
-  if(jwt.verify(token,"NNPTUD")){
-    console.log(jwt.decode(token));
+  if(token.startsWith("Bearer")){
+    token = token.split(" ")[1];
+    if(jwt.verify(token,"NNPTUD")){
+      if(jwt.decode(token).exp<Date.now()){
+        res.status(403).send({
+          success:false,
+          data:"user chua dang nhap 1"
+        })
+      }else{
+        let userId = jwt.decode(token)._id;
+        let user = await users.findById(userId).populate({
+    path: 'role',
+    select:'name'
+  });
+        if(user){
+            res.status(200).send({
+              success:true,
+              data:user
+            })
+        }
+      }
+    }else{
+      res.status(403).send({
+        success:false,
+        data:"user chua dang nhap 2"
+      })
+    }
+  }else{
+    res.status(403).send({
+      success:false,
+      data:"user chua dang nhap 3"
+    })
   }
 })
 
