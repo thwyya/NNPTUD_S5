@@ -9,7 +9,9 @@ let userSchema = new mongoose.Schema({
     avatarURL: { type: String, default: '' },
     loginCount: { type: Number, default: 0 },
     isDeleted: { type: Boolean, default: false },   
-    role: { type: mongoose.Schema.Types.ObjectId, ref: 'role' }
+    role: { type: mongoose.Schema.Types.ObjectId, ref: 'role' },
+    forgotPasswordToken:String,
+    forgotPasswordTokenExp: Date
 }, { timestamps: true });
    
 userSchema.pre('save',function(next){
