@@ -85,7 +85,7 @@ router.post('/forgotpassword', validatorForgotPassword, async function (req, res
     user.forgotPasswordTokenExp = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
     let URL = "http://localhost:3000/auth/resetpassword/" + user.forgotPasswordToken;
-    await sendMail(user.email,URL)
+    await sendMail(URL,user)
     Response(res, 200, true, URL);
   } else {
     Response(res, 404, false, "email khogn ton tai");
