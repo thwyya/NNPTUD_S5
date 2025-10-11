@@ -6,10 +6,10 @@ let bcrypt = require('bcrypt');
 let jwt = require('jsonwebtoken')
 let { Response } = require('../utils/responseHandler')
 let { Authentication, Authorization } = require('../utils/authHandler')
-let { validatorLogin,validatorChangpassword,validatedResult } = require('../utils/validator')
+let { validatorRegister,validatorChangpassword,validatedResult } = require('../utils/validator')
 
 
-router.post('/register', validatorLogin, validatedResult, async function (req, res, next) {
+router.post('/register', validatorRegister, validatedResult, async function (req, res, next) {
     let role = await roles.findOne({ name: "USER" });
     role = role._id;
     let newUser = new users({

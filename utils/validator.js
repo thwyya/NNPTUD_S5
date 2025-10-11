@@ -14,7 +14,7 @@ let options = {
 }
 
 module.exports = {
-    validatorLogin: [
+    validatorRegister: [
         body("email").isEmail().withMessage(constants.MESSAGE_ERROR_VALIDATOR_EMAIL),
         body("password").isStrongPassword(options.optionPassword).withMessage(util.format(MESSAGE_ERROR_VALIDATOR_PASSWORD,
             options.optionPassword.minLength,
