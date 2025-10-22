@@ -6,9 +6,13 @@ let { uploadAFileWithField, uploadMultiFilesWithField } = require('../utils/uplo
 const { Response } = require('../utils/responseHandler');
 
 router.get('/:filename', function (req, res, next) {
-    let pathFile = path.join(__dirname, "../resources/files/", req.params.filename);
-    if (fs.existsSync(pathFile)) {
-        res.status(200).sendFile(pathFile);
+    let filePath = path.join(__dirname, "../resources/files/", req.params.filename);
+    let imagePath = path.join(__dirname, "../resources/images/", req.params.filename);
+
+    if (fs.existsSync(filePath)) {
+        res.status(200).sendFile(filePath);
+    } else if (fs.existsSync(imagePath)) {
+        res.status(200).sendFile(imagePath);
     } else {
         Response(res, 404, false, "File not found");
     }

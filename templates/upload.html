@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Upload Avatar</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+      padding: 32px;
+      width: 360px;
+      text-align: center;
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    form {
+      margin-bottom: 20px;
+    }
+
+    input[type="file"] {
+      margin: 10px 0;
+      display: block;
+      width: 100%;
+    }
+
+    button {
+      background-color: #4a90e2;
+      color: #fff;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.25s;
+    }
+
+    button:hover {
+      background-color: #357ab8;
+    }
+
+    hr {
+      margin: 20px 0;
+      border: 0;
+      border-top: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Upload Ảnh Đại Diện</h2>
+    <form id="uploadForm" enctype="multipart/form-data">
+      <input type="file" name="avatar" accept="image/*" required />
+      <button type="submit">Tải lên</button>
+    </form>
+
+    <hr />
+
+    <h2>Upload Nhiều Ảnh</h2>
+    <form id="multiForm" enctype="multipart/form-data">
+      <input type="file" name="image" multiple accept="image/*" />
+      <button type="submit">Tải lên nhiều ảnh</button>
+    </form>
+  </div>
+
+  <script>
+    const token = "Bearer " + localStorage.getItem("token"); // Lấy token từ localStorage
+
+    document.getElementById("uploadForm").onsubmit = async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const res = await fetch("http://localhost:3000/users/upload-avatar", {
+        method: "POST",
+        headers: { Authorization: token },
+        body: formData
+      });
+      const text = await res.text();
+      alert(text);
+    };
+
+    document.getElementById("multiForm").onsubmit = async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const res = await fetch("http://localhost:3000/files/uploadMulti", {
+        method: "POST",
+        body: formData
+      });
+      const text = await res.text();
+      alert(text);
+    };
+  </script>
+</body>
+</html>

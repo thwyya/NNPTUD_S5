@@ -1,3 +1,5 @@
+const { Authentication } = require('../utils/authHandler');
+let { uploadAFileWithField } = require('../utils/uploadHandler')
 var express = require('express');
 var router = express.Router();
 let users = require('../schemas/users');
@@ -57,6 +59,28 @@ router.put('/:id', async function(req, res, next) {
       success:true,
       data:user
     })
+});
+router.post('/upload-avatar', Authentication, uploadAFileWithField('avatar'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return Response(res, 400, false, "Không có file được upload");
+    }
+
+    const avatarURL = `${req.protocol}://${req.get('host')}/files/${req.file.filename}`;
+    const user = await users.findById(req.userId);
+
+    if (!user) {
+      return Response(res, 404, false, "Không tìm thấy user");
+    }
+
+    user.avatarURL = avatarURL;
+    await user.save();
+
+    Response(res, 200, true, { message: "Upload avatar thành công", avatarURL });
+  } catch (err) {
+    console.error(err);
+    Response(res, 500, false, "Lỗi server khi upload avatar");
+  }
 });
 
 module.exports = router;
